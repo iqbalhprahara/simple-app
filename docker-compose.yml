@@ -1,0 +1,40 @@
+version: '3.5'
+
+networks:
+    backend:
+        driver: bridge
+
+services:
+    app:
+      build:
+        context: ./docker/app
+        args:
+          - PUID=${APP_PUID}
+          - PGID=${APP_PGID}
+        # Only will build development stage from our dockerfile
+        target: development
+      restart: unless-stopped
+      tty: true
+      env_file:
+      - .env
+      volumes:
+          - .:/usr/src/app
+      command: npm run start:dev
+      ports:
+          - "3000:3000"
+      networks:
+          - backend
+          
+    db:
+      image: postgres:16-alpine
+      restart: unless-stopped
+      environment:
+        - POSTGRES_DB=${DB_DATABASE}
+        - POSGRES_USER=${DB_USER}
+        - POSTGRES_PASSWORD=${DB_PASSWORD}
+      volumes:
+        - ./docker/data/postgres:/var/lib/postgresql/data
+      networks:
+        - backend
+
+
